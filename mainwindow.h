@@ -2,11 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QProgressBar>
 #include <QLabel>
-#include <QSpinBox>
-#include <QFontComboBox>
-#include <QMessageBox>
+#include <QStack>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -17,33 +14,36 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-private:
-    QLabel * flabCurFile;
-    QProgressBar * progressBar;
-    QSpinBox * spinFontSize;
-    QFontComboBox * comboFont;
 
-    void iniUI();
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    QString operand;
+    QString opcode;
+    QStack<QString> operands;
+    QStack<QString> opcodes;
+
+    QString calculation(bool *ok=NULL);
+
 private slots:
-    void on_MainWindow_iconSizeChanged(const QSize &iconSize);
+    void btnNumClicked();
+    void btnBinaryOperatorClicked();    //多操作数
+    void btnUnaryOperatorClicked();     //单操作数
+    void on_btn_dot_clicked();
+    void on_btn_delete_clicked();
 
-    void on_actb_triggered(bool checked);//粗体的槽函数
+    void on_btn_C_clicked();
 
-    void on_actunder_triggered(bool checked);//下划线的槽函数
+    void on_btn_sum_clicked();
 
-    void on_action_5_triggered(bool checked);//斜体的槽函数
+    void on_btn_CE_clicked();
 
-    void on_actAbout_triggered();//关于的槽函数
-
-    void on_textEdit_selectionChanged();
-
-    void on_MainWindow_toolButtonStyleChanged(const Qt::ToolButtonStyle &toolButtonStyle);
+    void on_btn_multiple_clicked();
 
 private:
     Ui::MainWindow *ui;
+
+    QLabel *statusMsgLabel;
 };
 #endif // MAINWINDOW_H

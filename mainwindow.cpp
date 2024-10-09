@@ -1,97 +1,176 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include    <QFile>
-#include    <QFileDialog>
-#include    <QTextStream>
-#include    <QFontDialog>
-#include    <QCoreApplication>
-#include    <Qlabel>
-#include    <QTextCharFormat>
-#include    <QMessageBox>
-void MainWindow::iniUI()
-{
-    flabCurFile=new QLabel;
-    flabCurFile->setMidLineWidth(150);
-    flabCurFile->setText("当前文件：");
-    ui->statusbar->addWidget(flabCurFile);
-
-    progressBar=new QProgressBar;
-    progressBar->setMinimum(5);
-    progressBar->setMaximum(50);
-    progressBar->setValue(ui->textEdit->font().pointSize());
-    ui->statusbar->addWidget(progressBar);
-
-    spinFontSize=new QSpinBox;
-    spinFontSize->setMinimum(5);
-    spinFontSize->setMaximum(50);
-    spinFontSize->setValue(ui->textEdit->font().pointSize());//初始值
-    spinFontSize->setMinimumWidth(50);//设置组件最小宽度
-    ui->toolBar->addWidget(new QLabel("字体大小 ")); //不引用的Label无需定义变量
-    ui->toolBar->addWidget(spinFontSize); //SpinBox添加到工具栏
-    ui->toolBar->addSeparator(); //工具栏上增加分隔条
-
-    comboFont=new QFontComboBox;
-    ui->toolBar->addWidget(new QLabel("字体"));
-    ui->toolBar->addWidget(comboFont);
-}
+#include <math.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    iniUI();
-    // 连接“关于”按钮的信号到槽函数
-    connect(ui->actAbout, &QAction::triggered, this, &MainWindow::on_actAbout_triggered);
-    setCentralWidget(ui->textEdit);
+
+    connect(ui->btn_num0,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+    connect(ui->btn_num1,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+    connect(ui->btn_num2,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+    connect(ui->btn_num3,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+    connect(ui->btn_num4,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+    connect(ui->btn_num5,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+    connect(ui->btn_num6,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+    connect(ui->btn_num7,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+    connect(ui->btn_num8,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+    connect(ui->btn_num9,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+
+    connect(ui->btn_plus,SIGNAL(clicked()),this,SLOT(btnBinaryOperatorClicked()));
+    connect(ui->btn_subtract,SIGNAL(clicked()),this,SLOT(btnBinaryOperatorClicked()));
+    connect(ui->btn_multiple,SIGNAL(clicked()),this,SLOT(btnBinaryOperatorClicked()));
+    connect(ui->btn_divide,SIGNAL(clicked()),this,SLOT(btnBinaryOperatorClicked()));
+
+    connect(ui->btn_1x,SIGNAL(clicked()),this,SLOT(btnUnaryOperatorClicked()));
+    connect(ui->btn_2x,SIGNAL(clicked()),this,SLOT(btnUnaryOperatorClicked()));
+    connect(ui->btn_dividenum,SIGNAL(clicked()),this,SLOT(btnUnaryOperatorClicked()));
+    connect(ui->btn_x2,SIGNAL(clicked()),this,SLOT(btnUnaryOperatorClicked()));
+    connect(ui->btn_jiajian,SIGNAL(clicked()),this,SLOT(btnUnaryOperatorClicked()));
 }
+
 MainWindow::~MainWindow()
 {
     delete ui;
 }
-//粗体按下去的状态
-void MainWindow::on_actb_triggered(bool checked)
+
+QString MainWindow::calculation(bool *ok)
 {
-    QTextCharFormat fmt; //格式
-    fmt=ui->textEdit->currentCharFormat();//获取当前选择文字的格式
-    if (checked) // 相当于调用ui->actFontBold->isChecked();读取Action的check状态
-        fmt.setFontWeight(QFont::Bold);
-    else
-        fmt.setFontWeight(QFont::Normal);
-    ui->textEdit->mergeCurrentCharFormat(fmt);
-}
-void MainWindow::on_action_5_triggered(bool checked)
-{
-    QTextCharFormat fmt;
-    fmt=ui->textEdit->currentCharFormat();
-    fmt.setFontItalic(checked);
-    ui->textEdit->mergeCurrentCharFormat(fmt);
+    double result=operands.front().toDouble();;
+    if(operands.size()==2&&opcodes.size()>0)
+    {
+        //取操作数
+        double operand1=operands.front().toDouble();
+        operands.pop_front();
+        double operand2=operands.front().toDouble();
+        operands.pop_front();
+
+        //取操作符
+        QString op=opcodes.front();
+        opcodes.pop_front();
+
+        //完成运算
+        if(op=="+"){
+            result=operand1+operand2;
+        }
+        else if(op=="-"){
+            result=operand1-operand2;
+        }
+        else if(op=="×"){
+            result=operand1*operand2;
+        }
+        else if(op=="÷"){
+            result=operand1/operand2;
+        }
+
+        //将每次的计算结果记录保存
+        operands.push_back(QString::number(result));
+        //操作数和操作符已成功push进去并显示
+        ui->statusbar->showMessage(QString("push sucess：op1 is %1,op2 is %2").arg(operands.size()).arg(opcodes.size()));
+    }else{
+        //查看操作数和操作符是否push进去
+        ui->statusbar->showMessage(QString("op1 is %1,op2 is %2").arg(operands.size()).arg(opcodes.size()));
+    }
+    return QString::number(result);
 }
 
-void MainWindow::on_actunder_triggered(bool checked)
+void MainWindow::btnNumClicked()
 {
-    QTextCharFormat fmt;
-    fmt=ui->textEdit->currentCharFormat();
-    fmt.setFontUnderline(checked);
-    ui->textEdit->mergeCurrentCharFormat(fmt);
+    QString digit=qobject_cast<QPushButton *>(sender())->text();
+    if(digit=="0"&&operand=="0")
+        digit="";
+    if(operand=="0"&&digit!="0")
+        operand="";
+    operand+=digit;
+    ui->display->setText(operand);
 }
 
-void MainWindow::on_textEdit_selectionChanged()
-{
-    QTextCharFormat fmt;
-    fmt=ui->textEdit->currentCharFormat(); //获取文字的格式
 
-    ui->action_5->setChecked(fmt.fontItalic()); //是否斜体
-    ui->actb->setChecked(fmt.font().bold()); //是否粗体
-    ui->actunder->setChecked(fmt.fontUnderline()); //是否有下划线
+void MainWindow::on_btn_dot_clicked()
+{
+    if(!operand.contains("."))
+        operand+=qobject_cast<QPushButton *>(sender())->text();
+    ui->display->setText(operand);
+}
+
+void MainWindow::on_btn_delete_clicked()
+{
+    operand=operand.left(operand.length()-1);
+    ui->display->setText(operand);
+}
+
+void MainWindow::on_btn_CE_clicked()
+{
+    operands.clear();
+    ui->display->setText("0");
+}
+
+void MainWindow::on_btn_C_clicked()
+{
+    operands.clear();
+    operand.clear();
+    opcodes.clear();
+    opcode.clear();
+    ui->display->setText("0");
+}
+
+void MainWindow::btnBinaryOperatorClicked()
+{
+    QString opcode=qobject_cast<QPushButton *>(sender())->text();
+    if(operand!="")
+    {
+        operands.push_back(operand);
+        operand="";
+
+        opcodes.push_back(opcode);
+    }
+
+    QString result=calculation();
+    ui->display->setText(result);
 
 }
 
-void MainWindow::on_actAbout_triggered()
+void MainWindow::btnUnaryOperatorClicked()
 {
-    QMessageBox aboutBox;
-    aboutBox.setWindowTitle(tr("About"));
-    aboutBox.setText(tr("姓名：Xyx\n学号：2022414040234\n班级：22软件工程2班"));
-    aboutBox.exec();
+    if(operand!="")
+    {
+        double result=operand.toDouble();
+        operand="";
+
+        QString op=qobject_cast<QPushButton*>(sender())->text();
+        if(op=="%"){
+            result/=100.0;
+        }
+        else if(op=="¹/x"){
+            result=1/result;
+        }
+        else if(op=="x²"){
+            result=result*result;
+        }
+        else if(op=="²√x"){
+            result=sqrt(result);
+        }
+        else if(op=="+/-"){
+            result=-result;
+        }
+        ui->display->setText(QString::number(result));
+    }
 }
+void MainWindow::on_btn_sum_clicked()
+{
+    if(operand!="")
+    {
+        operands.push_back(operand);
+        operand="";
+    }
+    QString result=calculation();
+    ui->display->setText(result);
+    // 清空操作符队列，为下一次计算做准备
+    opcodes.clear();
+}
+
+
+
 

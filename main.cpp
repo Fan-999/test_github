@@ -9,3 +9,4 @@ int main(int argc, char *argv[])
     w.show();
     return a.exec();
 }
+    // ui->statusbar->showMessage(qobject_cast<QPushButton *>(sender())->text()+"btn clicked");
